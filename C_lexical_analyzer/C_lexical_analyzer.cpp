@@ -2,21 +2,26 @@
 //程序的问题：对于转移字符的分析存在错误，对词法分析器程序做分析时，正确的程序也会报错
 
 #include "stdafx.h"
-#include <iostream>
+//#include <iostream>
 #include <cstdio>
 #include <string>
 #include <ctype.h>
+#include<fstream>
 using namespace std;
 
 const int RESERVEWORDNUM = 73; //73个
 const int OPERATORNUM = 36;	//30个
 const int SPERATEOPERATOR = 15; // 15个
 const int DELIMITERSNUM = 11; //11个
-							  //const int IDENTIFIERNUM = 1000;
-							  //string IDentifierTbl[IDENTIFIERNUM];
+//const int IDENTIFIERNUM = 1000;
+//string IDentifierTbl[IDENTIFIERNUM];
 
 int lineNumber = 1;
 string errorMessage = "";
+
+ofstream cout("Result.out");
+ifstream cin("Resource.in");
+
 //关键字
 static string ReserveWord[RESERVEWORDNUM] = {
 	"asm" , "do" , "if" , "return" , "typedef" , "auto" , "double" , "inline" , "short" , "typeid" , "bool" ,   "dynamic_cast" , "int" , "signed" , "typename" , "break" , "else" , "long" , "sizeof" , "union" , "case" ,	"enum" , "mutable" , "static" , "unsigned" , "catch" , "explicit" , "namespace" , "static_cast" ,	"using" , "char" , "export" , "new" , "struct" , "virtual" , "class" , "extern" , "operator" , "switch" , "void" , "const" , "false" , "private" , "template" , "volatile" , "const_cast" , "float" , "protected" ,	"this" , "wchar_t" , "continue" , "for" , "public" , "throw" , "while" , "default" , "friend" , "register" ,	"true" , "delete" , "goto" , "reinterpret_cast" , "try" , "alignas" , "alignof" , "char16_t" , "char32_t" ,	"constexpr" , "decltype" , "noexcept" , "nullptr" , "static_assert" , "thread_local" };
@@ -63,14 +68,9 @@ static bool isSperateOperator(char ch) {
 	return false;
 }
 
-
-
-
 void lexical_analyze(string resource, int location) {
 	int len = resource.length();
-	//	cout << len << endl;
 	while (location < len) {
-		//	cout << lineNumber << endl;
 		//判断空格
 		if (resource[location] == ' ') {
 			location++;
@@ -121,16 +121,24 @@ void lexical_analyze(string resource, int location) {
 		//判断标识符
 		else if (isalpha(resource[location]) || resource[location] == '_') {
 			string temp_identifier = "";
+			bool isWrong = false;
 			temp_identifier = temp_identifier + resource[location];
 			location++;
-			while (isalnum(resource[location]) || resource[location] == '_') {
+			while (!(resource[location] == ' ' || isSperateOperator(resource[location]) || isDelimiters(resource[location]) || resource[location] == '\n')) {
 				temp_identifier = temp_identifier + resource[location];
+				if (!(isalnum(resource[location]) || resource[location] == '_')) {
+					isWrong = true;
+				}
 				location++;
 			}
+	//		cout << "**** " << temp_identifier.length() << endl;
 			if (isReserveWord(temp_identifier)) {
-				cout << "< " << temp_identifier << " , - >" << endl;
-			} else {
+				cout << "< " << temp_identifier << " , 关键字 >" << endl;
+			} else if(!isWrong){
 				cout << "< 标识符 , " << temp_identifier << " >" << endl;
+			} else {
+				string tmp = "第 " + to_string(lineNumber) + " 行标识符" + temp_identifier + "有错误！\n";
+				errorMessage = errorMessage + tmp;
 			}
 		}
 
@@ -139,7 +147,7 @@ void lexical_analyze(string resource, int location) {
 			string temp_number = "";
 			enum States { Start, One, Two, Three, Four, Five, Six, Seven, Err };
 			int i = 0, flag = 0;
-			char ch;
+			char ch; 
 			enum States state = Start;
 			while (ch = resource[location]) {
 				if (flag) {
@@ -250,20 +258,25 @@ void lexical_analyze(string resource, int location) {
 					location++;
 					break;
 				case Seven:
-					if (ch == '\n') {
+					if (ch == '\n'){
 						lineNumber++;
 						location++;
-					}
+					} 
 					flag = 1;
 					break;
 				case Err:
 					if (flag == 0) {
 						//	cout << "（判断字符DFA中）第 " << lineNumber << " 行有错误！" << endl; //错误定位 
-						cout << resource[location] << endl;
-						string tmp = "第 " + to_string(lineNumber) + " 行数字有错误或者缺少分隔符！\n";
+						//  cout << resource[location] << endl;
+						while (!(ch == ' ' || isSperateOperator(ch) || isDelimiters(ch) || ch == '\n')) {
+							temp_number += resource[location];
+							location++;
+							ch = resource[location];
+						}
+						string tmp = "第 " + to_string(lineNumber) + " 行常数" + temp_number + "有错误！\n";
 						errorMessage = errorMessage + tmp;
 						flag = 1;
-						cout << "< 数字 , " << temp_number << " >" << endl;
+						//cout << "< 数字 , " << temp_number << " >" << endl;
 					}
 					break;
 				}
@@ -355,13 +368,22 @@ void lexical_analyze(string resource, int location) {
 				location += 1;
 			}
 		}
+	
+		else {
+			string tmp = "第 " + to_string(lineNumber) + " 行不可识别的字符" + resource[location] + "! \n";
+			errorMessage += tmp;
+			location++;
+		}
 	}
 	if (errorMessage != "") {
+		cout << endl;
+		cout << "代码出错地方：" << endl;
 		cout << errorMessage << endl;
 	}
 }
 
 int main() {
+
 	string str;
 	string tmp_str = "";
 	while (getline(cin, str) && str != "EOF") {
@@ -369,6 +391,6 @@ int main() {
 		tmp_str = tmp_str + '\n';
 	}
 	lexical_analyze(tmp_str, 0);
-	cout << lineNumber << endl;
+	cout << "源程序总行数：" << lineNumber << endl;
 	return 0;
 }

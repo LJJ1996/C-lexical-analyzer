@@ -1,0 +1,22 @@
+#include<isostream>
+using namespace std;
+
+int main(){
+	int x = 12;
+	int y = 14.5;
+	cout << x + y << endl;
+	cout << (x >> 1) << endl;
+	cout << (x = x << 1) << endl;
+	int a = 12.abc;
+	itn v=12$asfd;
+	int ss = abs$DS;
+
+	/*sdfaf
+	dfa
+	8*/
+
+	/*dafdaf
+
+
+	return 0;
+}
