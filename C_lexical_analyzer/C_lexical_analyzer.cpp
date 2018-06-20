@@ -10,7 +10,7 @@
 using namespace std;
 
 const int RESERVEWORDNUM = 73; //73个
-const int OPERATORNUM = 36;	//30个
+const int OPERATORNUM = 37;	//30个
 const int SPERATEOPERATOR = 15; // 15个
 const int DELIMITERSNUM = 11; //11个
 //const int IDENTIFIERNUM = 1000;
@@ -28,7 +28,7 @@ static string ReserveWord[RESERVEWORDNUM] = {
 //运算符
 static char SperateOperator[SPERATEOPERATOR] = { '+' , '-' , '*' , '/' , '>' , '=' , '<' , '!' , '^' , '&' , '|' , '%' , '~' , '\?' , ':' };
 static string Operator[OPERATORNUM] = { "+" , "-" , "*" , "/" , "++" , "--" , "<" , "<=" , ">" , ">=" , "=" , "==" , "!=" , "^" , "&" , "&&" ,
-"|" , "||" , "!" , "%" , "~" , "<<" , ">>" , "." , "\?" , ":" , "+=" , "-=" , "/=" , "*=" , "%=" , ">>=", "<<=" , "&=", "^=" , "|=" };
+"|" , "||" , "!" , "%" , "~" , "<<" , ">>" , "." , "\?" , ":" , "+=" , "-=" , "/=" , "*=" , "%=" , ">>=", "<<=" , "&=", "^=" , "|=" ,"->"};
 //阶符
 static char Delimiters[DELIMITERSNUM] = { ';' , '(' , ')' , ',' , '#' , '[' , ']' , '{' , '}' , ':' , '.' };
 
@@ -85,7 +85,7 @@ void lexical_analyze(string resource, int location) {
 		}
 
 		//判断注释
-		else if (resource[location] == '/') {
+		else if (resource[location] == '/' && (resource[location + 1] == '*' || resource[location + 1] == '/')) {
 			string temp_annotation = "";
 			if (resource[location + 1] == '/') {
 				while (resource[location] != '\n') {
@@ -98,7 +98,7 @@ void lexical_analyze(string resource, int location) {
 				//	cout << "进入了注释里面" << endl;
 				int tmp_loc = location + 2;
 				int temp_line = lineNumber;
-				while (tmp_loc < len - 1 && (resource[tmp_loc] != '*' && resource[tmp_loc + 1] != '/')) {
+				while (tmp_loc < len - 1 && !(resource[tmp_loc] == '*' && resource[tmp_loc + 1] == '/')) {
 					//	cout << "找注释的结束位置" << endl;
 					if (resource[tmp_loc] == '\n') {
 						temp_line++;
@@ -131,7 +131,6 @@ void lexical_analyze(string resource, int location) {
 				}
 				location++;
 			}
-	//		cout << "**** " << temp_identifier.length() << endl;
 			if (isReserveWord(temp_identifier)) {
 				cout << "< " << temp_identifier << " , 关键字 >" << endl;
 			} else if(!isWrong){
@@ -178,7 +177,10 @@ void lexical_analyze(string resource, int location) {
 						break;
 					} else if (ch == 'E' || ch == 'D' || ch == 'e' || ch == 'd')
 						state = Three;
-					else {
+					else if (ch == '\n') {
+						state = Seven;
+						break;
+					}else{
 						state = Err;
 						break;
 					}
@@ -266,8 +268,6 @@ void lexical_analyze(string resource, int location) {
 					break;
 				case Err:
 					if (flag == 0) {
-						//	cout << "（判断字符DFA中）第 " << lineNumber << " 行有错误！" << endl; //错误定位 
-						//  cout << resource[location] << endl;
 						while (!(ch == ' ' || isSperateOperator(ch) || isDelimiters(ch) || ch == '\n')) {
 							temp_number += resource[location];
 							location++;
@@ -357,12 +357,11 @@ void lexical_analyze(string resource, int location) {
 				tmp_Operator = tmp_Operator + resource[location + 1];
 				if (isOperator(tmp_Operator)) {
 					cout << "< " << tmp_Operator << " , - >" << endl;
-					location += 2;
 				} else {
-					//	cout << "（判断组合操作符DFA中）第" << lineNumber << "行有错误！" << endl;
 					string tmp = "第 " + to_string(lineNumber) + " 行有错误！\n";
 					errorMessage = errorMessage + tmp;
 				}
+				location += 2;
 			} else {
 				cout << "< " << resource[location] << " , - >" << endl;
 				location += 1;

@@ -1,7 +1,7 @@
 < # , - >
 < 标识符 , include >
 < < , - >
-< 标识符 , isostream >
+< 标识符 , iostream >
 < > , - >
 < using , 关键字 >
 < namespace , 关键字 >
