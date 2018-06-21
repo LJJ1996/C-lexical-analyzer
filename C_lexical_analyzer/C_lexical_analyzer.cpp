@@ -382,12 +382,10 @@ void lexical_analyze(string resource, int location) {
 }
 
 int main() {
-
 	string str;
 	string tmp_str = "";
 	while (getline(cin, str) && str != "EOF") {
-		tmp_str = tmp_str + str;
-		tmp_str = tmp_str + '\n';
+		tmp_str = tmp_str + str + '\n';
 	}
 	lexical_analyze(tmp_str, 0);
 	cout << "源程序总行数：" << lineNumber << endl;
