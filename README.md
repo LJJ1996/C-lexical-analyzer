@@ -1,5 +1,7 @@
 # C-lexical-analyzer
 
+项目的环境为：Microsoft Visual Studio 2015
+
 程序是采用C/C++编写,主要对C/C++语言做词法分析
 
 根据词法分析器的三个功能编写该词法分析器
